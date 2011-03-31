@@ -1,0 +1,7 @@
+<h2 i18n:translate="">Public activity</h2>
+<ul tal:define="activities view/activities">
+  <li tal:repeat="activity activities">
+    <h3 tal:content="activity/title">title</h3>
+    <p tal:content="structure activity/subtitle">description</p>
+  </li>
+</ul>

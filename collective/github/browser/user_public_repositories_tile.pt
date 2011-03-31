@@ -1,0 +1,6 @@
+<h2 i18n:translate="">Public repositories</h2>
+<ul tal:define="repositories view/repositories">
+  <li tal:repeat="repo repositories">
+    <a class="external" tal:attributes="href string:${repo/url}; title string:${repo/description}" tal:content="repo/name"></a>
+  </li>
+</ul>

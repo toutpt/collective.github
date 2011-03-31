@@ -1,0 +1,8 @@
+<h2>User info</h2>
+<ul tal:define="user_info view/user_info">
+  <li tal:condition="user_info/name">Name: <span tal:content="user_info/name"></span></li>
+  <li tal:condition="user_info/company">Company: <span tal:content="user_info/company"></span></li>
+  <li tal:condition="user_info/email">Email : <span tal:content="user_info/email"></span></li>
+  <li tal:condition="user_info/location">Location : <span tal:content="user_info/location"></span></li>
+  <li tal:condition="user_info/blog">Blog : <span tal:content="user_info/blog"></span></li>
+</ul>

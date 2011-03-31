@@ -1,0 +1,27 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:browser="http://namespaces.zope.org/browser"
+    xmlns:cmf="http://namespaces.zope.org/cmf"
+    xmlns:five="http://namespaces.zope.org/five"
+    xmlns:genericsetup="http://namespaces.zope.org/genericsetup"
+    xmlns:i18n="http://namespaces.zope.org/i18n"
+    i18n_domain="collective.github">
+
+  <browser:page
+    name="github.html"
+    for="collective.github.interfaces.ILink"
+    class=".github.GithubLinkView"
+    allowed_interface=".github.IGithubView"
+    permission="zope2.View"
+    layer="collective.github.interfaces.IGithubLayer"
+  />
+
+  <browser:page
+    name="github"
+    for="collective.github.interfaces.ILink"
+    class=".github.GithubLink"
+    allowed_interface=".github.IGithubView"
+    permission="zope2.View"
+    layer="collective.github.interfaces.IGithubLayer"
+  />
+</configure>
