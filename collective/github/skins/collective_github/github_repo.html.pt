@@ -14,7 +14,17 @@
           </metal:field>
       </h1>
 
-TODO: add repo tile
+<div class="row">
+  <div class="cell width-1:2 position-0">
+    <h2>Links</h2>
+    <ul tal:define="repo_links githubview/repo_links">
+      <li tal:repeat="link repo_links"><a tal:attributes="href string:${link/url};title string:${link/title}" tal:content="link/title">repo</a></li>
+    </ul>
+  </div>
+  <div class="cell width-1:2 position-1:2">
+    <tal:block replace="structure githubview/repo_commits_tile"></tal:block>
+</div>
+
 
     </tal:main-macro>
     </div>

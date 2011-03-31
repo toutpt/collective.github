@@ -1,6 +1,13 @@
+import urllib2
+import json
+import feedparser
+
 from Products.Five import BrowserView
-from zope import interface
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
+from zope import interface
+
+GITHUB_URL = "https://github.com/"
+BASE_URL = GITHUB_URL+"api/v2/json/"
 
 class IGithubView(interface.Interface):
     """Github view helper"""
@@ -38,21 +45,21 @@ class GithubLinkView(BrowserView):
             self.request.response.redirect(self.context.absolute_url()+"/link_view")
             return ""
         urlInfo = githubUrlInfo(url)
+        if not urlInfo['repo']:
+            urlInfo['repo'] = self.request.get('github_repo',None)
         if urlInfo['repo']:
             return self.context.restrictedTraverse('github_repo.html')()
         return self.context.restrictedTraverse('github_user.html')()
 
-import urllib2
-import json
-import feedparser
-BASE_URL = "https://github.com/api/v2/json/"
 
 class GithubLink(BrowserView):
     """Github view helper"""
     interface.implements(IGithubView)
-    tpl_user_info_tile = ViewPageTemplateFile('user_info_tile.pt')
-    tpl_user_public_repositories_tile = ViewPageTemplateFile('user_public_repositories_tile.pt')
-    tpl_user_public_activity_tile = ViewPageTemplateFile('user_public_activity_tile.pt')
+
+    user_info_tile = ViewPageTemplateFile('user_info_tile.pt')
+    user_public_repositories_tile = ViewPageTemplateFile('user_public_repositories_tile.pt')
+    user_public_activity_tile = ViewPageTemplateFile('user_public_activity_tile.pt')
+    repo_commits_tile = ViewPageTemplateFile('repo_commits_tile.pt')
 
     def __init__(self, context, request):
         self.context = context
@@ -60,6 +67,9 @@ class GithubLink(BrowserView):
         self.url = self.context.getRemoteUrl()
         self.urlInfo = githubUrlInfo(self.url)
         self.isOrganisation = False
+        if self.urlInfo['repo'] is None:
+            #try to get it from the request
+            self.urlInfo['repo'] = self.request.get('github_repo',None)
 
     def user_info(self):
         user = self.urlInfo['user']
@@ -78,10 +88,16 @@ class GithubLink(BrowserView):
 
     def repositories(self):
         user = self.urlInfo['user']
-        jsonInfo = urllib2.urlopen(BASE_URL+'repos/watched/'+user).read()
+        jsonInfo = urllib2.urlopen(BASE_URL+'repos/show/'+user).read()
         info = json.loads(jsonInfo, 'utf-8')
         info = info[u'repositories']
+        self.stay_in_plone(info)
         return info
+
+    def stay_in_plone(self, repositories):
+        for repository in repositories:
+            new_url = self.context.absolute_url()+'?github_repo='+repository['name']
+            repository['url'] = new_url
 
     def activities(self):
         #['updated', 'published_parsed', 'subtitle', 'updated_parsed', 'links',
@@ -91,11 +107,37 @@ class GithubLink(BrowserView):
         feed = feedparser.parse("https://github.com/%s.atom"%user)
         return feed['entries']
 
-    def user_info_tile(self):
-        return self.tpl_user_info_tile()
+    def repo_info(self):
+        #https://github.com/api/v2/json/repos/show/toutpt/collective.github
+        user = self.urlInfo['user']
+        repo = self.urlInfo['repo']
+        jsonInfo = urllib2.urlopen(BASE_URL+'repos/show/%s/%s'%(user,repo)).read()
+        info = json.loads(jsonInfo)
+        info = info['repository']
+        return info
 
-    def user_public_repositories_tile(self):
-        return self.tpl_user_public_repositories_tile()
+    def repo_links(self):
+        user = self.urlInfo['user']
+        repo = self.urlInfo['repo']
+        url = GITHUB_URL + user + '/'+repo
+        links = []
+        links.append({'title':"Source",       'url':url})
+        links.append({'title':"Commits",      'url':url+'/commits/master'})
+        links.append({'title':"Network",      'url':url+'/network'})
+        links.append({'title':"Pull requests",'url':url+'/pulls'})
+        links.append({'title':"Issues",       'url':url+'/issues'})
+        links.append({'title':"Graphs",       'url':url+'/graphs'})
+        links.append({'title':"Repo HTTP",    'url':url+'.git'})
+        links.append({'title':"Repo Git RO",  'url':'git://github.com/%s/%s.git'%(user, repo)})
+        return links
 
-    def user_public_activity_tile(self):
-        return self.tpl_user_public_activity_tile()
+    def commits(self):
+        #commits/list/:user_id/:repository/:branch
+        user = self.urlInfo['user']
+        repo = self.urlInfo['repo']
+        if not repo:
+            return []
+        jsonInfo = urllib2.urlopen(BASE_URL+'commits/list/%s/%s/master'%(user,repo)).read()
+        info = json.loads(jsonInfo)
+        info = info['commits']
+        return info
