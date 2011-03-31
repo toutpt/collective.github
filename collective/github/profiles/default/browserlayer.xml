@@ -1,0 +1,4 @@
+<layers>
+    <layer name="collective.github"
+           interface="collective.github.interfaces.IGithubLayer" />
+</layers>
