@@ -86,12 +86,13 @@ class GithubLink(BrowserView):
         userInfo = userInfo[u'user']
         return userInfo
 
-    def repositories(self):
+    def repositories(self, stay_in_plone=True):
         user = self.urlInfo['user']
         jsonInfo = urllib2.urlopen(BASE_URL+'repos/show/'+user).read()
         info = json.loads(jsonInfo, 'utf-8')
         info = info[u'repositories']
-        self.stay_in_plone(info)
+        if stay_in_plone:
+            self.stay_in_plone(info)
         return info
 
     def stay_in_plone(self, repositories):
